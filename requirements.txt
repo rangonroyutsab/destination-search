@@ -1,0 +1,9 @@
+Django==6.1
+djangorestframework==3.17.2
+psycopg2-binary>=2.9.10
+django-filter>=25.2
+django-redis>=5.4
+gunicorn==26.0.0
+python-decouple>=3.8
+elasticsearch>=9.0,<10
+python-dotenv>=1.0.0

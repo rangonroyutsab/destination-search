@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDEs
+.idea/
+.vscode/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checking / linting
+.mypy_cache/
+.ruff_cache/
+
+# Django generated/runtime files
+staticfiles/
+media/
+
+# Local databases
+*.sqlite3
+
+# Logs
+*.log
+
+# Docker
+compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Extras
+temp/
