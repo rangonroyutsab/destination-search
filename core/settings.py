@@ -73,6 +73,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
+    "EXCEPTION_HANDLER": "core.utils.exceptions.custom_exception_handler",
 }
 
 ELASTICSEARCH_URL = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
