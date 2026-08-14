@@ -2,8 +2,8 @@ from django.db import connections
 from django.db.utils import OperationalError
 from rest_framework.views import APIView
 
-from core.utils.responses import error_response, success_response
 from apps.destinations.search.client import get_es_client
+from core.utils.responses import error_response, success_response
 
 
 class HealthCheckView(APIView):

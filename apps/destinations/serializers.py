@@ -13,3 +13,7 @@ class SearchQuerySerializer(serializers.Serializer):
 
     def validate_country(self, value):
         return value.strip() or None
+
+
+class AutocompleteQuerySerializer(serializers.Serializer):
+    q = serializers.CharField(required=True, allow_blank=False, trim_whitespace=True)

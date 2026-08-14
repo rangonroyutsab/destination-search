@@ -9,11 +9,7 @@ from elasticsearch import TransportError
 
 from apps.destinations.search.client import get_es_client, index_name
 from apps.destinations.search.queries import build_search_query
-
-
-class SearchUnavailableError(Exception):
-    """Raised when Elasticsearch can't be reached — lets the view
-    return a proper 503 instead of a raw 500."""
+from core.utils.exceptions import ServiceUnavailableError
 
 
 def search(q: str, country: str | None = None, size: int = 20) -> list[dict]:
@@ -27,7 +23,7 @@ def search(q: str, country: str | None = None, size: int = 20) -> list[dict]:
     try:
         response = es.search(index=index_name(), body=query_body)
     except (ESConnectionError, TransportError) as exc:
-        raise SearchUnavailableError(str(exc)) from exc
+        raise ServiceUnavailableError(str(exc)) from exc
 
     return [_hit_to_result(hit) for hit in response["hits"]["hits"]]
 

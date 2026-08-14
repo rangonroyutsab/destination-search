@@ -57,3 +57,33 @@ def build_search_query(q: str, country: str | None = None, size: int = 20) -> di
             }
         },
     }
+
+
+def build_autocomplete_query(q: str, size: int = 5) -> dict:
+    """
+    Top-N autocomplete
+        - optimized for speed, so no fuzziness
+        - relies on the edge_ngram index-time analyzer to handle prefix matching
+    """
+    q_norm = q.strip().lower()
+
+    return {
+        "size": size,
+        "query": {
+            "function_score": {
+                "query": {
+                    "bool": {
+                        "should": [
+                            {"term": {"city.raw": {"value": q_norm, "boost": 20}}},
+                            {"match": {"city": {"query": q_norm, "boost": 8}}},
+                            {"match": {"country": {"query": q_norm, "boost": 2}}},
+                        ],
+                        "minimum_should_match": 1,
+                    }
+                },
+                "functions": [_population_score_function()],
+                "boost_mode": "sum",
+                "score_mode": "sum",
+            }
+        },
+    }
