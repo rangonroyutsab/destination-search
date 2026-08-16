@@ -87,3 +87,36 @@ def build_autocomplete_query(q: str, size: int = 5) -> dict:
             }
         },
     }
+
+
+def build_nearby_query(
+    lat: float, lon: float, radius_km: float, size: int = 50
+) -> dict:
+    """
+    Radius search around a point. Uses a geo_distance FILTER (not a
+    scored query) - a result is either in range or it isn't, so
+    there's no relevance score to compute; sorting is by actual
+    distance instead, which is what "nearby" means to a caller.
+    """
+    return {
+        "size": size,
+        "query": {
+            "bool": {
+                "filter": {
+                    "geo_distance": {
+                        "distance": f"{radius_km}km",
+                        "location": {"lat": lat, "lon": lon},
+                    }
+                }
+            }
+        },
+        "sort": [
+            {
+                "_geo_distance": {
+                    "location": {"lat": lat, "lon": lon},
+                    "order": "asc",
+                    "unit": "km",
+                }
+            }
+        ],
+    }
