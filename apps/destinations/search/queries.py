@@ -120,3 +120,30 @@ def build_nearby_query(
             }
         ],
     }
+
+
+def build_within_bounds_query(
+    north: float, south: float, east: float, west: float, size: int = 100
+) -> dict:
+    """
+    Map viewport / bounding-box search. Also a filter, not a scored
+    query — every result inside the box is equally "in bounds".
+    Sorted by population so the most prominent places surface first
+    when a zoomed-out viewport returns more than `size` results.
+    """
+    return {
+        "size": size,
+        "query": {
+            "bool": {
+                "filter": {
+                    "geo_bounding_box": {
+                        "location": {
+                            "top_left": {"lat": north, "lon": west},
+                            "bottom_right": {"lat": south, "lon": east},
+                        }
+                    }
+                }
+            }
+        },
+        "sort": [{"population": {"order": "desc"}}],
+    }

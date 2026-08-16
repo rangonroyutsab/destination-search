@@ -8,6 +8,7 @@ from apps.destinations.serializers import (
     AutocompleteQuerySerializer,
     NearbyQuerySerializer,
     SearchQuerySerializer,
+    WithinBoundsQuerySerializer,
 )
 from apps.destinations.services import autocomplete_service, geo_service, search_service
 from core.utils.responses import success_response
@@ -61,3 +62,18 @@ class NearbyView(APIView):
                 "count": len(results),
             },
         )
+
+
+class WithinBoundsView(APIView):
+    """GET /api/v1/destinations/within-bounds?north=<n>&south=<s>&east=<e>&west=<w>"""
+
+    def get(self, request):
+        serializer = WithinBoundsQuerySerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        results = geo_service.within_bounds(
+            data["north"], data["south"], data["east"], data["west"]
+        )
+
+        return success_response(results, meta={**data, "count": len(results)})

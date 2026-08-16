@@ -10,4 +10,9 @@ urlpatterns = [
         name="destination-autocomplete",
     ),
     path("nearby/", views.NearbyView.as_view(), name="destination-nearby"),
+    path(
+        "within-bounds/",
+        views.WithinBoundsView.as_view(),
+        name="destination-within-bounds",
+    ),
 ]
