@@ -10,24 +10,32 @@ INDEX_NAME = "destinations"
 
 INDEX_BODY = {
     "settings": {
+        "index": {
+            "max_ngram_diff": 18,
+        },
         "analysis": {
+            "normalizer": {
+                "destination_normalizer": {
+                    "type": "custom",
+                    "filter": ["lowercase", "asciifolding"],
+                }
+            },
             "filter": {
-                # Builds "san" -> s, sa, san as indexed tokens, so a partial
-                # prefix typed by the user matches without needing a
-                # wildcard query (which is slow at 1M+ docs).
                 "edge_ngram_filter": {
                     "type": "edge_ngram",
-                    "min_gram": 1,
+                    "min_gram": 2,
                     "max_gram": 20,
+                    "preserve_original": True,
                 }
             },
             "analyzer": {
                 # Used when INDEXING city/country — expands each token into
-                # its prefix ngrams.
+                # its prefix ngrams. asciifolding strips accents so
+                # "München"/"munchen" are indexed identically.
                 "autocomplete_index_analyzer": {
                     "type": "custom",
                     "tokenizer": "standard",
-                    "filter": ["lowercase", "edge_ngram_filter"],
+                    "filter": ["lowercase", "asciifolding", "edge_ngram_filter"],
                 },
                 # Used when SEARCHING — deliberately NOT ngram'd, so a
                 # search for "san" matches indexed ngram "san" exactly,
@@ -35,10 +43,15 @@ INDEX_BODY = {
                 "autocomplete_search_analyzer": {
                     "type": "custom",
                     "tokenizer": "standard",
-                    "filter": ["lowercase"],
+                    "filter": ["lowercase", "asciifolding"],
+                },
+                "standard_text_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": ["lowercase", "asciifolding"],
                 },
             },
-        }
+        },
     },
     "mappings": {
         "properties": {
@@ -49,7 +62,8 @@ INDEX_BODY = {
                 "fields": {
                     # Untouched exact/keyword form — for exact-match
                     # boosting and sorting, separate from the ngram field.
-                    "raw": {"type": "keyword"},
+                    "raw": {"type": "keyword", "normalizer": "destination_normalizer"},
+                    "standard": {"type": "text", "analyzer": "standard_text_analyzer"},
                 },
             },
             "country": {
@@ -57,7 +71,8 @@ INDEX_BODY = {
                 "analyzer": "autocomplete_index_analyzer",
                 "search_analyzer": "autocomplete_search_analyzer",
                 "fields": {
-                    "raw": {"type": "keyword"},
+                    "raw": {"type": "keyword", "normalizer": "destination_normalizer"},
+                    "standard": {"type": "text", "analyzer": "standard_text_analyzer"},
                 },
             },
             "population": {"type": "integer"},
