@@ -1,0 +1,482 @@
+/* =========================================
+   Base & Reset
+   ========================================= */
+:root {
+  --primary: #12303A;
+  --background: #F7F8F8;
+  --surface: #FFFFFF;
+  --border: #E2E6E8;
+  --text: #1F2933;
+  --muted-text: #66737B;
+  --focus-ring: rgba(18, 48, 58, 0.3);
+
+  --radius: 8px;
+  --font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, select {
+  font-family: inherit;
+  font-size: 15px;
+}
+
+/* =========================================
+   Layout: Split Screen
+   ========================================= */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.left-pane {
+  padding: 24px;
+  flex: 1;
+}
+
+.right-pane {
+  height: 350px; /* Fixed height for mobile */
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1; /* Keep leaflet z-index sane */
+}
+
+@media (min-width: 900px) {
+  .main-content {
+    flex-direction: row;
+  }
+  .left-pane {
+    width: 63%;
+    flex: 0 0 63%;
+    overflow-y: auto;
+    /* max-height: calc(100vh - 50px); Assuming header is 50px */
+  }
+  .right-pane {
+    width: 37%;
+    flex: 0 0 37%;
+    height: auto;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    position: sticky;
+    top: 50px;
+    height: calc(100vh - 50px);
+  }
+}
+
+/* =========================================
+   Header
+   ========================================= */
+.header {
+  height: 50px;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.health-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  position: relative;
+}
+.health-indicator:hover {
+  background-color: var(--background);
+}
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--muted-text);
+}
+.health-dot.healthy { background-color: #10B981; }
+.health-dot.degraded { background-color: #F59E0B; }
+.health-dot.unavailable { background-color: #EF4444; }
+
+.health-popover {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 240px;
+  z-index: 101;
+}
+
+.health-popover h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.health-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* =========================================
+   Mode Tabs
+   ========================================= */
+.mode-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.tab-button {
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted-text);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-button:hover {
+  color: var(--text);
+}
+
+.tab-button.active {
+  color: var(--text);
+  border-bottom-color: var(--primary);
+}
+
+/* =========================================
+   Controls & Inputs
+   ========================================= */
+.controls-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 900px) {
+  .controls-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  position: relative;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-text);
+}
+
+.input-field {
+  height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 16px;
+  outline: none;
+  background-color: var(--surface);
+  width: 100%;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.btn-primary {
+  height: 48px;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 500;
+  border-radius: var(--radius);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  height: 48px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 500;
+  border-radius: var(--radius);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-secondary:hover {
+  background-color: var(--background);
+}
+
+.btn-small {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+@media (min-width: 900px) {
+  .btn-primary.auto-width, .btn-secondary.auto-width {
+    width: auto;
+  }
+}
+
+/* =========================================
+   Autocomplete
+   ========================================= */
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 50;
+}
+
+.autocomplete-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+.autocomplete-item:hover, .autocomplete-item.highlighted {
+  background-color: var(--background);
+}
+
+.autocomplete-city {
+  font-weight: 500;
+  font-size: 15px;
+}
+.autocomplete-country {
+  font-size: 13px;
+  color: var(--muted-text);
+  margin-top: 2px;
+}
+.autocomplete-loading {
+  padding: 12px 16px;
+  color: var(--muted-text);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* =========================================
+   Results
+   ========================================= */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.result-card:hover {
+  border-color: var(--muted-text);
+}
+
+.result-card.selected {
+  border-color: var(--primary);
+  background-color: #F0F4F5;
+  border-left: 4px solid var(--primary);
+}
+
+.result-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.result-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.result-metric {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.result-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.result-pop {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.result-coords {
+  font-size: 13px;
+  color: var(--muted-text);
+}
+
+/* =========================================
+   Empty & Error States
+   ========================================= */
+.empty-state {
+  padding: 32px 0;
+  color: var(--muted-text);
+  font-size: 15px;
+}
+.empty-state p { margin-top: 8px; }
+
+.error-message {
+  color: #EF4444;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.global-error {
+  padding: 24px;
+  background-color: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius);
+  color: #991B1B;
+  margin-bottom: 24px;
+}
+
+/* =========================================
+   Developer Details
+   ========================================= */
+.developer-details {
+  margin-top: 48px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.dev-toggle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dev-toggle:hover { color: var(--text); }
+
+.dev-content {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-size: 13px;
+}
+
+.dev-meta {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  color: var(--muted-text);
+}
+
+.dev-meta span strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.dev-response-wrapper {
+  position: relative;
+}
+
+.dev-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.dev-pre {
+  background: var(--background);
+  padding: 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  color: var(--text);
+  font-family: monospace;
+}
+
+/* =========================================
+   Map Adjustments
+   ========================================= */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+}
