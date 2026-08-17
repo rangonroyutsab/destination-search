@@ -1,0 +1,14 @@
+[run]
+omit =
+    */migrations/*
+    */tests/*
+    manage.py
+    core/asgi.py
+    core/wsgi.py
+    conftest.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
