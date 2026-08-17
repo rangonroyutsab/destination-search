@@ -39,20 +39,6 @@ services:
       retries: 15
       start_period: 30s
 
-  # redis:
-  #   image: redis:8.10-alpine
-  #   container_name: destsearch-redis
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${REDIS_PORT:-6379}:6379"
-  #   volumes:
-  #     - redisdata:/data
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 10
-
   web:
     build:
       context: .
@@ -69,7 +55,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-destsearch}
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      # REDIS_URL: redis://redis:6379/0
       ELASTICSEARCH_URL: http://elasticsearch:9200
     volumes:
       - .:/app
@@ -79,8 +64,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # redis:
-      #   condition: service_healthy
       elasticsearch:
         condition: service_healthy
 
@@ -93,7 +76,7 @@ services:
       dockerfile: Dockerfile
     container_name: destsearch-seed
     profiles: ["seed"]
-    command: python manage.py seed_destinations data/cities.csv
+    command: python manage.py seed_destinations data/worldcitiespop.csv
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-core.settings}
       POSTGRES_DB: ${POSTGRES_DB:-destination_search}
@@ -113,5 +96,4 @@ services:
 
 volumes:
   pgdata:
-  # redisdata:
   esdata:
