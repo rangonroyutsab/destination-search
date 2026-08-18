@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "Destination Search API",
+    "description": "API endpoints for the Destination Search application.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base_url}}/health/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health",
+            ""
+          ]
+        }
+      }
+    },
+    {
+      "name": "Destinations",
+      "item": [
+        {
+          "name": "Search",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/destinations/search/?q=paris",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "search",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "paris",
+                  "description": "The search query"
+                },
+                {
+                  "key": "country",
+                  "value": "fr",
+                  "description": "Optional country code (e.g. US, FR, GB)",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Autocomplete",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/destinations/autocomplete/?q=lon",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "autocomplete",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "lon",
+                  "description": "The search query prefix"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Nearby",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/destinations/nearby/?lat=48.85&lon=2.35&radius=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "nearby",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "48.85",
+                  "description": "Latitude"
+                },
+                {
+                  "key": "lon",
+                  "value": "2.35",
+                  "description": "Longitude"
+                },
+                {
+                  "key": "radius",
+                  "value": "50",
+                  "description": "Radius in kilometers"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Within Bounds",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/destinations/within-bounds/?north=51.6&south=51.4&east=0.1&west=-0.3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "destinations",
+                "within-bounds",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "north",
+                  "value": "51.6"
+                },
+                {
+                  "key": "south",
+                  "value": "51.4"
+                },
+                {
+                  "key": "east",
+                  "value": "0.1"
+                },
+                {
+                  "key": "west",
+                  "value": "-0.3"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
