@@ -6,7 +6,7 @@ export default function NearbyControls({ center, radius, onRadiusChange, onCente
   const handleUseLocation = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((position) => {
-        onCenterChange(position.coords.latitude, position.coords.longitude);
+        onCenterChange(position.coords.latitude, position.coords.longitude, true);
       }, (err) => {
         alert('Failed to get location: ' + err.message);
       });

@@ -36,6 +36,8 @@ function MapController({
   results, 
   selectedDestination, 
   nearbyCenter, 
+  nearbyRadiusKm,
+  panTrigger,
   onMapClick, 
   onBoundsChange,
   shouldFitBounds
@@ -63,17 +65,28 @@ function MapController({
     }
   });
 
-  // Fit bounds when new results arrive in search mode
+  // Pan smoothly when explicitly triggered (e.g., "Use my location" click)
   useEffect(() => {
-    if (mode === 'search' && shouldFitBounds && results && results.length > 0) {
-      // Only fit bounds if results actually changed (new search)
+    if (mode === 'nearby' && panTrigger > 0 && nearbyCenter) {
+      map.flyTo([nearbyCenter.lat, nearbyCenter.lng], map.getZoom(), { duration: 0.5 });
+    }
+  }, [panTrigger, mode, map, nearbyCenter]);
+
+  // Fit bounds when new results arrive in search mode or nearby mode
+  useEffect(() => {
+    if (shouldFitBounds && results) {
       if (results !== previousResultsRef.current) {
-        const bounds = L.latLngBounds(results.map(r => [r.location?.lat, r.location?.lon]));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        if (mode === 'search' && results.length > 0) {
+          const bounds = L.latLngBounds(results.map(r => [r.location?.lat, r.location?.lon]));
+          map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (mode === 'nearby' && nearbyCenter) {
+          const bounds = L.latLng(nearbyCenter.lat, nearbyCenter.lng).toBounds(nearbyRadiusKm * 1000 * 2);
+          map.fitBounds(bounds, { padding: [50, 50] });
+        }
         previousResultsRef.current = results;
       }
     }
-  }, [results, mode, shouldFitBounds, map]);
+  }, [results, mode, shouldFitBounds, map, nearbyCenter, nearbyRadiusKm]);
 
   // Pan to selected destination if it's out of view
   useEffect(() => {
@@ -95,6 +108,7 @@ export default function DestinationMap({
   hoveredDestination,
   nearbyCenter,
   nearbyRadiusKm,
+  panTrigger,
   onSelectDestination,
   onMapClick,
   onBoundsChange,
@@ -119,6 +133,8 @@ export default function DestinationMap({
         results={results}
         selectedDestination={selectedDestination}
         nearbyCenter={nearbyCenter}
+        nearbyRadiusKm={nearbyRadiusKm}
+        panTrigger={panTrigger}
         onMapClick={onMapClick}
         onBoundsChange={onBoundsChange}
         shouldFitBounds={shouldFitBounds}

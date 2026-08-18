@@ -28,6 +28,7 @@ function App() {
   const [nearbyCenter, setNearbyCenter] = useState(null);
   const [nearbyRadius, setNearbyRadius] = useState(10);
   const [currentBounds, setCurrentBounds] = useState(null);
+  const [panTrigger, setPanTrigger] = useState(0);
 
   // Latest request tracking to avoid stale updates
   const latestRequestId = useRef(0);
@@ -47,7 +48,7 @@ function App() {
     setResults([]);
   };
 
-  const executeSearch = async (apiCall, isSearchMode = false) => {
+  const executeSearch = async (apiCall, shouldFit = false) => {
     const reqId = ++latestRequestId.current;
     setLoading(true);
     resetStateForSearch();
@@ -65,7 +66,7 @@ function App() {
       setError('Unable to load destinations. Please try again.');
     } else {
       setResults(result.data.data || []);
-      if (isSearchMode) {
+      if (shouldFit) {
         setShouldFitBounds(true);
       }
     }
@@ -77,7 +78,7 @@ function App() {
 
   const handleNearbySearch = () => {
     if (nearbyCenter) {
-      executeSearch(() => searchNearby(nearbyCenter.lat, nearbyCenter.lng, nearbyRadius), false);
+      executeSearch(() => searchNearby(nearbyCenter.lat, nearbyCenter.lng, nearbyRadius), true);
     }
   };
 
@@ -107,7 +108,12 @@ function App() {
               <NearbyControls 
                 center={nearbyCenter}
                 radius={nearbyRadius}
-                onCenterChange={(lat, lng) => setNearbyCenter({ lat, lng })}
+                onCenterChange={(lat, lng, shouldPan = false) => {
+                  setNearbyCenter({ lat, lng });
+                  if (shouldPan) {
+                    setPanTrigger(prev => prev + 1);
+                  }
+                }}
                 onRadiusChange={setNearbyRadius}
                 onSearch={handleNearbySearch}
               />
@@ -152,6 +158,7 @@ function App() {
             hoveredDestination={hoveredDestination}
             nearbyCenter={nearbyCenter}
             nearbyRadiusKm={nearbyRadius}
+            panTrigger={panTrigger}
             onSelectDestination={setSelectedDestination}
             onMapClick={handleMapClick}
             onBoundsChange={setCurrentBounds}
