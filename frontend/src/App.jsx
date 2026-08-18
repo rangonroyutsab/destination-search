@@ -100,10 +100,45 @@ function App() {
     setNearbyCenter({ lat, lng });
   };
 
+  // Resizing layout
+  const containerRef = useRef(null);
+  const [leftPaneWidth, setLeftPaneWidth] = useState(50);
+  const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newWidthPercent = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      
+      if (newWidthPercent >= 50 && newWidthPercent <= 80) {
+        setLeftPaneWidth(newWidthPercent);
+      }
+    };
+    
+    const handleMouseUp = () => setIsResizing(false);
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+    };
+  }, [isResizing]);
+
   return (
     <div className="app-container">
       <Header />
-      <div className="main-content">
+      <div 
+        className="main-content"
+        ref={containerRef}
+        style={{ '--left-pane-width': `${leftPaneWidth}%` }}
+      >
         <div className="left-pane">
           <ModeTabs activeMode={activeMode} onChange={handleModeChange} />
           
@@ -158,7 +193,13 @@ function App() {
 
           <DeveloperDetails reqInfo={developerRequestInfo} />
         </div>
-        <div className="right-pane">
+
+        <div 
+          className={`resizer ${isResizing ? 'active' : ''}`}
+          onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+        />
+
+        <div className="right-pane" style={{ pointerEvents: isResizing ? 'none' : 'auto' }}>
           <DestinationMap 
             mode={activeMode}
             results={results}

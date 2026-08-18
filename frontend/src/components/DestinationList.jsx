@@ -25,7 +25,7 @@ export default function DestinationList({
   }
 
   return (
-    <div className="results-list" ref={listRef}>
+    <div className="results-grid" ref={listRef}>
       {results.map((dest, idx) => (
         <DestinationCard
           key={`${dest.city}-${dest.country}-${idx}`} // using idx as fallback if no id

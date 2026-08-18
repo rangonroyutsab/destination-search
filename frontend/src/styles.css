@@ -73,20 +73,37 @@ input, select {
     flex-direction: row;
   }
   .left-pane {
-    width: 63%;
-    flex: 0 0 63%;
+    width: var(--left-pane-width, 50%);
+    flex: 0 0 var(--left-pane-width, 50%);
     overflow-y: auto;
-    /* max-height: calc(100vh - 50px); Assuming header is 50px */
   }
   .right-pane {
-    width: 37%;
-    flex: 0 0 37%;
+    width: auto;
+    flex: 1;
     height: auto;
     border-top: none;
-    border-left: 1px solid var(--border);
+    border-left: none;
     position: sticky;
     top: 50px;
     height: calc(100vh - 50px);
+  }
+}
+
+.resizer {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .resizer {
+    display: flex;
+    width: 6px;
+    background-color: var(--border);
+    cursor: col-resize;
+    z-index: 10;
+    transition: background-color 0.2s;
+  }
+  .resizer:hover, .resizer.active {
+    background-color: var(--primary);
   }
 }
 
@@ -328,10 +345,10 @@ input, select {
 /* =========================================
    Results
    ========================================= */
-.results-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
   margin-bottom: 32px;
 }
 
@@ -342,6 +359,9 @@ input, select {
   padding: 16px;
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .result-card:hover {
@@ -358,7 +378,9 @@ input, select {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .result-title {
@@ -376,6 +398,7 @@ input, select {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  margin-top: auto;
 }
 
 .result-pop {
