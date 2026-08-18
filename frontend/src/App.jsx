@@ -30,6 +30,10 @@ function App() {
   const [currentBounds, setCurrentBounds] = useState(null);
   const [panTrigger, setPanTrigger] = useState(0);
 
+  // Drawing state
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [drawnBounds, setDrawnBounds] = useState(null);
+
   // Latest request tracking to avoid stale updates
   const latestRequestId = useRef(0);
 
@@ -46,6 +50,8 @@ function App() {
     setActiveMode(mode);
     setHasSearched(false);
     setResults([]);
+    setIsDrawingMode(false);
+    setDrawnBounds(null);
   };
 
   const executeSearch = async (apiCall, shouldFit = false) => {
@@ -83,8 +89,9 @@ function App() {
   };
 
   const handleBoundsSearch = () => {
-    if (currentBounds) {
-      const { north, south, east, west } = currentBounds;
+    const boundsToSearch = drawnBounds || currentBounds;
+    if (boundsToSearch) {
+      const { north, south, east, west } = boundsToSearch;
       executeSearch(() => searchWithinBounds(north, south, east, west), false);
     }
   };
@@ -122,6 +129,7 @@ function App() {
               <BoundsControls 
                 onSearch={handleBoundsSearch}
                 hasBounds={!!currentBounds}
+                drawnBounds={drawnBounds}
               />
             )}
           </div>
@@ -163,6 +171,14 @@ function App() {
             onMapClick={handleMapClick}
             onBoundsChange={setCurrentBounds}
             shouldFitBounds={shouldFitBounds}
+            isDrawingMode={isDrawingMode}
+            setIsDrawingMode={setIsDrawingMode}
+            drawnBounds={drawnBounds}
+            onDrawComplete={(bounds) => {
+              setDrawnBounds(bounds);
+              setIsDrawingMode(false);
+            }}
+            onClearDrawnArea={() => setDrawnBounds(null)}
           />
         </div>
       </div>

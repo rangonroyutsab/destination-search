@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet';
+import React, { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Rectangle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 
 // Create custom icons to distinguish selection and modes
@@ -30,6 +30,57 @@ const centerIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
+
+function DrawController({ isDrawingMode, onDrawComplete }) {
+  const map = useMap();
+  const [startPoint, setStartPoint] = useState(null);
+  const [currentPoint, setCurrentPoint] = useState(null);
+
+  useEffect(() => {
+    if (isDrawingMode) {
+      map.dragging.disable();
+      map.getContainer().style.cursor = 'crosshair';
+    } else {
+      map.dragging.enable();
+      map.getContainer().style.cursor = '';
+      setStartPoint(null);
+      setCurrentPoint(null);
+    }
+  }, [isDrawingMode, map]);
+
+  useMapEvents({
+    mousedown: (e) => {
+      if (!isDrawingMode) return;
+      setStartPoint(e.latlng);
+      setCurrentPoint(e.latlng);
+    },
+    mousemove: (e) => {
+      if (!isDrawingMode || !startPoint) return;
+      setCurrentPoint(e.latlng);
+    },
+    mouseup: () => {
+      if (!isDrawingMode || !startPoint || !currentPoint) return;
+      if (startPoint.lat !== currentPoint.lat && startPoint.lng !== currentPoint.lng) {
+        const bounds = L.latLngBounds(startPoint, currentPoint);
+        onDrawComplete({
+          north: bounds.getNorth(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          west: bounds.getWest()
+        });
+      }
+      setStartPoint(null);
+      setCurrentPoint(null);
+    }
+  });
+
+  if (startPoint && currentPoint && startPoint.lat !== currentPoint.lat) {
+    const bounds = L.latLngBounds(startPoint, currentPoint);
+    return <Rectangle bounds={bounds} pathOptions={{ color: '#12303A', weight: 2, fillOpacity: 0.2 }} />;
+  }
+
+  return null;
+}
 
 function MapController({ 
   mode, 
@@ -112,72 +163,129 @@ export default function DestinationMap({
   onSelectDestination,
   onMapClick,
   onBoundsChange,
-  shouldFitBounds
+  shouldFitBounds,
+  isDrawingMode,
+  setIsDrawingMode,
+  drawnBounds,
+  onDrawComplete,
+  onClearDrawnArea
 }) {
   // Center of world as fallback
   const defaultCenter = [20, 0];
   const defaultZoom = 2;
 
   return (
-    <MapContainer 
-      center={defaultCenter} 
-      zoom={defaultZoom} 
-      style={{ height: '100%', width: '100%' }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapController 
-        mode={mode}
-        results={results}
-        selectedDestination={selectedDestination}
-        nearbyCenter={nearbyCenter}
-        nearbyRadiusKm={nearbyRadiusKm}
-        panTrigger={panTrigger}
-        onMapClick={onMapClick}
-        onBoundsChange={onBoundsChange}
-        shouldFitBounds={shouldFitBounds}
-      />
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <MapContainer 
+        center={defaultCenter} 
+        zoom={defaultZoom} 
+        style={{ height: '100%', width: '100%', zIndex: 1 }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MapController 
+          mode={mode}
+          results={results}
+          selectedDestination={selectedDestination}
+          nearbyCenter={nearbyCenter}
+          nearbyRadiusKm={nearbyRadiusKm}
+          panTrigger={panTrigger}
+          onMapClick={onMapClick}
+          onBoundsChange={onBoundsChange}
+          shouldFitBounds={shouldFitBounds}
+        />
 
-      {/* Render Nearby Center & Circle */}
-      {mode === 'nearby' && nearbyCenter && (
-        <>
-          <Marker position={[nearbyCenter.lat, nearbyCenter.lng]} icon={centerIcon} />
-          <Circle 
-            center={[nearbyCenter.lat, nearbyCenter.lng]} 
-            radius={nearbyRadiusKm * 1000} 
-            pathOptions={{ color: '#12303A', fillColor: '#12303A', fillOpacity: 0.1 }} 
+        {/* Drawing Controller */}
+        {mode === 'bounds' && (
+          <DrawController 
+            isDrawingMode={isDrawingMode} 
+            onDrawComplete={onDrawComplete} 
           />
-        </>
+        )}
+
+        {/* Render Final Drawn Bounds */}
+        {mode === 'bounds' && drawnBounds && !isDrawingMode && (
+          <Rectangle 
+            bounds={[
+              [drawnBounds.south, drawnBounds.west],
+              [drawnBounds.north, drawnBounds.east]
+            ]} 
+            pathOptions={{ color: '#12303A', weight: 2, fillOpacity: 0.1 }} 
+          />
+        )}
+
+        {/* Render Nearby Center & Circle */}
+        {mode === 'nearby' && nearbyCenter && (
+          <>
+            <Marker position={[nearbyCenter.lat, nearbyCenter.lng]} icon={centerIcon} />
+            <Circle 
+              center={[nearbyCenter.lat, nearbyCenter.lng]} 
+              radius={nearbyRadiusKm * 1000} 
+              pathOptions={{ color: '#12303A', fillColor: '#12303A', fillOpacity: 0.1 }} 
+            />
+          </>
+        )}
+
+        {/* Render Destination Markers */}
+        {results && results.map((dest, idx) => {
+          const isSelected = selectedDestination?.location?.lat === dest.location?.lat && selectedDestination?.location?.lon === dest.location?.lon;
+          const isHovered = hoveredDestination?.location?.lat === dest.location?.lat && hoveredDestination?.location?.lon === dest.location?.lon;
+          const active = isSelected || isHovered;
+
+          return (
+            <Marker
+              key={`${dest.city}-${dest.country}-${idx}`}
+              position={[dest.location?.lat, dest.location?.lon]}
+              icon={active ? selectedIcon : defaultIcon}
+              eventHandlers={{
+                click: () => onSelectDestination(dest)
+              }}
+            >
+              {isSelected && (
+                <Popup>
+                  <div>
+                    <strong>{dest.city}, {dest.country}</strong><br/>
+                    {(dest.population !== null) && <span>Pop: {dest.population.toLocaleString()}<br/></span>}
+                  </div>
+                </Popup>
+              )}
+            </Marker>
+          );
+        })}
+      </MapContainer>
+
+      {/* Floating Draw Toggle Button */}
+      {mode === 'bounds' && (
+        <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000 }}>
+          {drawnBounds ? (
+            <button 
+              className="btn-secondary"
+              onClick={onClearDrawnArea}
+              style={{ 
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                backgroundColor: 'white',
+                color: 'var(--text-color)',
+              }}
+            >
+              Clear
+            </button>
+          ) : (
+            <button 
+              className={isDrawingMode ? "btn-primary" : "btn-secondary"}
+              onClick={() => setIsDrawingMode(!isDrawingMode)}
+              style={{ 
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                backgroundColor: isDrawingMode ? 'var(--highlight-color)' : 'white',
+                color: isDrawingMode ? 'white' : 'var(--text-color)',
+              }}
+            >
+              {isDrawingMode ? 'Cancel Drawing' : 'Draw'}
+            </button>
+          )}
+        </div>
       )}
-
-      {/* Render Destination Markers */}
-      {results && results.map((dest, idx) => {
-        const isSelected = selectedDestination?.location?.lat === dest.location?.lat && selectedDestination?.location?.lon === dest.location?.lon;
-        const isHovered = hoveredDestination?.location?.lat === dest.location?.lat && hoveredDestination?.location?.lon === dest.location?.lon;
-        const active = isSelected || isHovered;
-
-        return (
-          <Marker
-            key={`${dest.city}-${dest.country}-${idx}`}
-            position={[dest.location?.lat, dest.location?.lon]}
-            icon={active ? selectedIcon : defaultIcon}
-            eventHandlers={{
-              click: () => onSelectDestination(dest)
-            }}
-          >
-            {isSelected && (
-              <Popup>
-                <div>
-                  <strong>{dest.city}, {dest.country}</strong><br/>
-                  {(dest.population !== null) && <span>Pop: {dest.population.toLocaleString()}<br/></span>}
-                </div>
-              </Popup>
-            )}
-          </Marker>
-        );
-      })}
-    </MapContainer>
+    </div>
   );
 }
