@@ -5,6 +5,8 @@ Geo service — nearby (radius) and within-bounds (bounding box) search.
 from elasticsearch import ConnectionError as ESConnectionError
 from elasticsearch import TransportError
 
+from django.conf import settings
+
 from apps.destinations.search.client import get_es_client, index_name
 from apps.destinations.search.queries import (
     build_nearby_query,
@@ -13,7 +15,8 @@ from apps.destinations.search.queries import (
 from core.utils.exceptions import ServiceUnavailableError
 
 
-def nearby(lat: float, lon: float, radius_km: float, size: int = 50) -> list[dict]:
+def nearby(lat: float, lon: float, radius_km: float, size: int | None = None) -> list[dict]:
+    size = size or settings.NEARBY_DEFAULT_SIZE
     """
     Returns destinations within radius_km of (lat, lon), nearest first:
         {"city": ..., "country": ..., "population": ..., "location": {...}, "distance_km": ...}
@@ -30,8 +33,9 @@ def nearby(lat: float, lon: float, radius_km: float, size: int = 50) -> list[dic
 
 
 def within_bounds(
-    north: float, south: float, east: float, west: float, size: int = 100
+    north: float, south: float, east: float, west: float, size: int | None = None
 ) -> list[dict]:
+    size = size or settings.BOUNDS_DEFAULT_SIZE
     """
     Returns destinations inside the given map viewport, most populous
     first:

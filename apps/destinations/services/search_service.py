@@ -7,12 +7,15 @@ straight to success_response().
 from elasticsearch import ConnectionError as ESConnectionError
 from elasticsearch import TransportError
 
+from django.conf import settings
+
 from apps.destinations.search.client import get_es_client, index_name
 from apps.destinations.search.queries import build_search_query
 from core.utils.exceptions import ServiceUnavailableError
 
 
-def search(q: str, country: str | None = None, size: int = 20) -> list[dict]:
+def search(q: str, country: str | None = None, size: int | None = None) -> list[dict]:
+    size = size or settings.SEARCH_DEFAULT_SIZE
     """
     Runs a destination search and returns a list of plain result dicts:
         {"city": ..., "country": ..., "population": ..., "location": {"lat":.., "lon":..}, "score": ...}

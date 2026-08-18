@@ -5,21 +5,21 @@ but optimized for speed and top-N results, so no fuzzy matching or country filte
 
 from elasticsearch import ConnectionError as ESConnectionError
 from elasticsearch import TransportError
+from django.conf import settings
 
 from apps.destinations.search.client import get_es_client, index_name
 from apps.destinations.search.queries import build_autocomplete_query
 from core.utils.exceptions import ServiceUnavailableError
 
-MAX_RESULTS = 5
 
-
-def autocomplete(q: str) -> list[dict]:
+def autocomplete(q: str, size: int | None = None) -> list[dict]:
     """
-    Returns up to 5 suggestion dicts:
+    Returns up to `size` suggestion dicts:
         {"city": ..., "country": ..., "location": {"lat":.., "lon":..}}
     """
+    size = size or settings.AUTOCOMPLETE_DEFAULT_SIZE
     es = get_es_client()
-    query_body = build_autocomplete_query(q, size=MAX_RESULTS)
+    query_body = build_autocomplete_query(q, size=size)
 
     try:
         response = es.search(index=index_name(), body=query_body)

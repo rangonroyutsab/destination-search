@@ -107,3 +107,10 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+
+# Search Limits
+SEARCH_DEFAULT_SIZE = int(os.getenv("SEARCH_DEFAULT_SIZE", "24"))
+NEARBY_DEFAULT_SIZE = int(os.getenv("NEARBY_DEFAULT_SIZE", "48"))
+BOUNDS_DEFAULT_SIZE = int(os.getenv("BOUNDS_DEFAULT_SIZE", "48"))
+AUTOCOMPLETE_DEFAULT_SIZE = int(os.getenv("AUTOCOMPLETE_DEFAULT_SIZE", "5"))
+    

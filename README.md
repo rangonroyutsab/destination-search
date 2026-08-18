@@ -117,6 +117,10 @@ All variables are read from `.env` (copied from `.env.example`). Docker Compose 
 | `POSTGRES_PORT` | `5432` | Host-side port for PostgreSQL |
 | `ES_PORT` | `9200` | Host-side port for Elasticsearch |
 | `WEB_PORT` | `8000` | Host-side port for Django |
+| `SEARCH_DEFAULT_SIZE` | `24` | Max results for text search queries |
+| `NEARBY_DEFAULT_SIZE` | `48` | Max results for geo-radius nearby search |
+| `BOUNDS_DEFAULT_SIZE` | `48` | Max results for map bounding-box search |
+| `AUTOCOMPLETE_DEFAULT_SIZE` | `5` | Max suggestions returned for autocomplete |
 
 ---
 
